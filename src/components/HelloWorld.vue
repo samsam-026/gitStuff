@@ -148,7 +148,7 @@ export default {
         labels: this.chartLabels
       };
       new Chart(ctx, {
-        type: "pie",
+        type: "doughnut",
         data: allData,
         options: {
           responsive: false
