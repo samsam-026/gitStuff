@@ -1,6 +1,6 @@
 # git-stuff
 
-A repo to practice my git.
+A repo to practice my git. It displays the recent commits of any github user, along with a graphical chart representation for the number of commits per repo.
 
 ## Project setup
 ```
