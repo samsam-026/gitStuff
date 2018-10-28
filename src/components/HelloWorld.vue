@@ -8,7 +8,7 @@
         </div>
         <div class="row">
             <div class="col-lg-4"></div>
-            <div class="col-lg-4">
+            <div class="col-lg-4 text-center">
                 <form class="form-inline" v-on:submit.prevent="getDetails">
                     <input type="text" v-model="username" class="form-control mb-2 mr-sm-2"  placeholder="Username" autofocus>
                     <button type="button" v-on:click.prevent="getDetails" class="btn btn-primary mb-2" >Submit</button>
@@ -16,9 +16,15 @@
             </div>
         </div>
         <div class="row" v-if="resultsFetching">
-            <div class="col-lg-2"> </div>
-            <div class="col-lg-8">
+            <div class="col-lg-5"> </div>
+            <div class="col-lg-2 text-center">
                 <div class="loader"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-4"> </div>
+            <div class="col-lg-4 text-center">
+                <canvas ref="chart" width="350" height="350"></canvas>
             </div>
         </div>
         <div class="row" v-if="results.length !== 0">
@@ -34,7 +40,7 @@
         </div>
         <div class="row" v-if="resultsFetched && results.length === 0">
             <div class="col-lg-2"> </div>
-            <div class="col-lg-8">
+            <div class="col-lg-8 text-center">
                 <h3>This user has not made any commits</h3>
             </div>
         </div>
@@ -43,6 +49,8 @@
 </template>
 
 <script>
+import Chart from "chart.js";
+
 export default {
   name: "HelloWorld",
   props: {
@@ -53,18 +61,22 @@ export default {
       username: "",
       results: [],
       resultsFetched: false,
-      resultsFetching: false
+      resultsFetching: false,
+      chartLabels: [],
+      chartData: []
     };
   },
   methods: {
     getDetails() {
       if (this.username !== "") {
+        this.resultsFetching = true;
         let url = "https://api.github.com/users/" + this.username + "/events";
         axios
           .get(url)
           .then(response => {
-            this.resultsFetching = true;
             let allCommits = [];
+            let chrData = [];
+            let chrLabel = [];
             response.data.forEach(data => {
               if (data.type === "PushEvent") {
                 data.payload.commits.forEach(commit => {
@@ -77,14 +89,25 @@ export default {
                     repo: data.repo.name
                   };
                   allCommits.push(item);
+                  let index = chrLabel.indexOf(item.repo);
+                  if (index > -1) {
+                    chrData[index] = chrData[index] + 1;
+                  } else {
+                    chrLabel.push(item.repo);
+                    chrData.push(1);
+                  }
                 });
               }
             });
             this.resultsFetching = false;
             this.resultsFetched = true;
             this.results = allCommits;
+            this.chartData = chrData;
+            this.chartLabels = chrLabel;
+            this.renderChart();
           })
           .catch(error => {
+            this.resultsFetching = false;
             if (error.toString() === "Error: Network Error") {
               alert("Please connect to the internet.");
             } else {
@@ -158,11 +181,11 @@ a {
 }
 
 .loader {
-  border: 16px solid #f3f3f3;
+  border: 10px solid #f3f3f3;
   border-radius: 50%;
-  border-top: 16px solid #3498db;
-  width: 120px;
-  height: 120px;
+  border-top: 10px solid #3498db;
+  width: 80px;
+  height: 80px;
   -webkit-animation: spin 2s linear infinite;
   /* Safari */
   animation: spin 2s linear infinite;
